@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Follow-up Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">W</div>
+      <div>
+        <h2>WhatsApp Follow Up</h2>
+        <span>Customer Communication</span>
+      </div>
+    </div>
+
+    <nav class="navigation">
+      <button class="nav-item active" data-page="dashboard">⌂ <span>Dashboard</span></button>
+      <button class="nav-item" data-page="customers">♧ <span>Customers</span></button>
+      <button class="nav-item" data-page="templates">▤ <span>Templates</span></button>
+      <button class="nav-item" data-page="campaign">▷ <span>Campaign</span></button>
+      <button class="nav-item" data-page="reports">▥ <span>Reports</span></button>
+      <button class="nav-item" data-page="settings">⚙ <span>Settings</span></button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="secure-icon">✓</div>
+      <div>
+        <strong>Local & Secure</strong>
+        <span>Your data stays on this device</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-spacer"></div>
+      <div class="topbar-info">
+        <span id="currentDate"></span>
+        <span id="currentTime"></span>
+        <span class="notification-icon">♧</span>
+        <div class="profile">
+          <div class="avatar">S</div>
+          <span>Sameer</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="page-content" id="dashboardPage">
+      <div class="page-heading">
+        <h1>Good Morning, Sameer</h1>
+        <p>Here's your WhatsApp campaign overview</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">♧</div>
+          <div><span>Total Customers</span><h2 id="totalCount">0</h2><small>Loaded from Excel</small></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">◷</div>
+          <div><span>Scheduled</span><h2 id="scheduledCount">0</h2><small>With date & time</small></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon sky">ϟ</div>
+          <div><span>Due Now</span><h2 id="dueCount">0</h2><small>Ready to process</small></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✓</div>
+          <div><span>Completed</span><h2 id="completedCount">0</h2><small>Manually confirmed</small></div>
+        </div>
+        <div class="stat-card compact">
+          <div class="stat-icon gray">Ⅱ</div>
+          <div><span>Skipped</span><h2 id="skippedCount">0</h2><small>Not processed</small></div>
+        </div>
+      </div>
+
+      <div class="dashboard-layout">
+        <section class="panel customer-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Customer List</h2>
+              <p>All customers loaded from your Excel file</p>
+            </div>
+            <div class="header-actions">
+              <input id="searchInput" type="search" placeholder="⌕  Search by mobile number...">
+              <label class="upload-button">
+                ⇧ Upload Excel
+                <input type="file" id="workbookInput" accept=".xlsx,.xls,.csv" hidden>
+              </label>
+            </div>
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">All (<span id="allTabCount">0</span>)</button>
+            <button class="filter-tab" data-filter="due">Due Now (<span id="dueTabCount">0</span>)</button>
+            <button class="filter-tab" data-filter="scheduled">Scheduled (<span id="scheduledTabCount">0</span>)</button>
+            <button class="filter-tab" data-filter="completed">Completed (<span id="completedTabCount">0</span>)</button>
+            <button class="filter-tab" data-filter="skipped">Skipped (<span id="skippedTabCount">0</span>)</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="selectAll"></th>
+                  <th>Mobile Number</th>
+                  <th>Amount (₹)</th>
+                  <th>Template</th>
+                  <th>Follow-up Date</th>
+                  <th>Follow-up Time</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="customerTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="table-footer">
+            <span id="tableSummary">Showing 0 customers</span>
+            <div class="pagination" id="pagination"></div>
+          </div>
+        </section>
+
+        <aside class="right-column">
+          <section class="panel current-panel">
+            <div class="panel-heading">
+              <h3>Current / Next Customer</h3>
+              <span class="status-pill due" id="selectedStatus">Select</span>
+            </div>
+
+            <div class="customer-details">
+              <div>☎ <strong id="selectedMobile">No customer selected</strong></div>
+              <div>₹ <strong id="selectedAmount">—</strong></div>
+              <div>▧ <span class="template-tag" id="selectedTemplate">—</span></div>
+              <div>▦ <span id="selectedSchedule">—</span></div>
+            </div>
+
+            <div class="message-section">
+              <h4>Message Preview</h4>
+              <div class="message-preview" id="messagePreview">
+                Select a customer to preview the message.
+              </div>
+              <button class="whatsapp-button" id="openSelected">◉ Open WhatsApp</button>
+              <button class="outline-button" id="markSent">✓ Mark as Sent</button>
+            </div>
+          </section>
+
+          <section class="panel campaign-panel">
+            <h3>Campaign Controls</h3>
+            <label for="intervalInput">Auto Open Interval (seconds)</label>
+            <input type="number" id="intervalInput" min="10" max="3600" value="60">
+
+            <div class="campaign-buttons">
+              <button class="start-button" id="startCampaign">▶ Start Campaign</button>
+              <div class="button-row">
+                <button class="outline-button" id="pauseCampaign">Ⅱ Pause</button>
+                <button class="outline-button" id="stopCampaign">□ Stop</button>
+              </div>
+            </div>
+
+            <div class="info-note">
+              <span>ⓘ</span>
+              <p>WhatsApp will open the chat with the selected message. Please review and send manually.</p>
+            </div>
+            <div class="campaign-status" id="campaignStatus">Campaign stopped</div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section class="page-content secondary-page hidden" id="customersPage">
+      <div class="page-heading">
+        <h1>Customers</h1>
+        <p>Import your customer list and manage message assignments.</p>
+      </div>
+      <div class="panel simple-panel">
+        <h2>Workbook structure</h2>
+        <p>Upload one workbook containing these fixed sheet names:</p>
+        <ul>
+          <li><strong>Customer List:</strong> Mobile Number</li>
+          <li><strong>Templates:</strong> Template Name, Message</li>
+          <li><strong>Message Workflow:</strong> Mobile Number, Amount, Template, Follow-up Date, Follow-up Time, Status</li>
+        </ul>
+        <p class="muted">The website reads the Message Workflow sheet as the main campaign queue.</p>
+        <label class="upload-button">
+          ⇧ Upload Workbook
+          <input type="file" id="workbookInput2" accept=".xlsx,.xls" hidden>
+        </label>
+      </div>
+    </section>
+
+    <section class="page-content secondary-page hidden" id="templatesPage">
+      <div class="page-heading">
+        <h1>Templates</h1>
+        <p>Import and manage message templates in bulk.</p>
+      </div>
+      <div class="panel simple-panel">
+        <div class="panel-header">
+          <div><h2>Template Library</h2><p>Bulk import a CSV or Excel file with Template Name and Message columns.</p></div>
+          <label class="upload-button">
+            ⇧ Import Templates
+            <input type="file" id="templateInput" accept=".xlsx,.xls,.csv" hidden>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Template Name</th><th>Message</th></tr></thead>
+            <tbody id="templateTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-content secondary-page hidden" id="campaignPage">
+      <div class="page-heading">
+        <h1>Campaign</h1>
+        <p>Review the queue and control scheduled messaging.</p>
+      </div>
+      <div class="panel simple-panel">
+        <h2>Campaign Queue</h2>
+        <p id="campaignQueueSummary">No campaign data loaded.</p>
+        <button class="start-button" id="campaignStartAlt">▶ Start Campaign</button>
+      </div>
+    </section>
+
+    <section class="page-content secondary-page hidden" id="reportsPage">
+      <div class="page-heading">
+        <h1>Reports</h1>
+        <p>Review the local campaign activity.</p>
+      </div>
+      <div class="panel simple-panel">
+        <h2>Activity Summary</h2>
+        <p id="reportSummary">No activity yet.</p>
+        <button class="outline-button" id="exportCsv">Export Workflow CSV</button>
+      </div>
+    </section>
+
+    <section class="page-content secondary-page hidden" id="settingsPage">
+      <div class="page-heading">
+        <h1>Settings</h1>
+        <p>Local website preferences.</p>
+      </div>
+      <div class="panel simple-panel">
+        <h2>Data & privacy</h2>
+        <p>Customer records and statuses are saved in this browser's local storage. Avoid using shared or public computers.</p>
+        <button class="danger-button" id="clearData">Clear local data</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
